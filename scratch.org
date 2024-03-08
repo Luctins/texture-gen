@@ -1,0 +1,143 @@
+:PROPERTIES:
+#+TITLE: Scratch
+#+OPTIONS: toc:nil todo:nil
+#+FILETAGS: temporary
+:END:
+
+* wallpaper generator
+
+#+NAME: output-size
+|    h |    v |
+|------+------|
+| 2560 | 1080 |
+
+
+** count based
+*** generator
+#+name: gen-command
+#+header: :var stamp_op="-channel A -fx a*0.7"
+#+begin_src python :var v_count=2 :var h_count=2 :var h_max=500 :var v_max=500 :var stamp_name="m.png"
+  from random import randint
+
+  stamp_size=100
+
+  # this depends on the image to be stamped on
+  hofs_max=int((stamp_size/2) * 0.7)
+  vofs_max=int((stamp_size/2) * 0.5)
+
+  # h_step = int(stamp_size * 0.8)
+  # v_step = int(stamp_size * 0.7)
+  h_step = int(h_max / h_count)
+  v_step = int(v_max / v_count)
+
+  cmd=""
+
+  for v in range(0, int(v_max), v_step):
+      for h in range(0, int(h_max), h_step):
+          v_pos = v + randint(-vofs_max, vofs_max)
+          h_pos = h + randint(-hofs_max, hofs_max)
+          rot = randint(0, 360)
+
+          cmd+=f"( ( {stamp_name} {stamp_op}  ) -rotate {rot} -geometry {stamp_size}x{stamp_size}^{h_pos:+}{v_pos:+} ) -composite "
+
+  return cmd
+#+end_src
+
+#+RESULTS: gen-command
+: ( ( m.png -channel A -fx a*0.7  ) -geometry 100x100^-7-7 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 100x100^+249+21 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 100x100^-16+269 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 100x100^+266+274 ) -composite
+
+*** dark
+#+name: gen-background-dark
+#+header: :var result_file="m-texture_dark.png"
+#+header: :var h_size=output-size[2, 0] :var v_size=output-size[2, 1] :colnames nil
+#+header: :var layer_method="Multiply" :var bg_color="white"
+#+header: :var cmd=gen-command(h_max=output-size[2, 0], stamp_op="-alpha extract -alpha copy -fx a*0.3", stamp_name="m_negated.png", v_max=output-size[2, 1], v_count=15, h_count=30) :cache no
+#+begin_src sh :exports results :results file graphics :file m-texture_dark.png
+  convert -size ${h_size}x${v_size} xc:$bg_color \
+          -background white -gravity NorthWest -compose $layer_method -alpha off \
+          $cmd \
+          -negate \
+          $result_file 1>/dev/null
+
+  echo $result_file
+#+end_src
+
+#+RESULTS: gen-background-dark
+[[file:m-texture_dark.png]]
+
+*** light
+#+name: gen-background-light
+#+header: :var result_file="m-texture_light.png"
+#+header: :var h_size=output-size[2, 0] :var v_size=output-size[2, 1] :colnames nil
+#+header: :var layer_method="Multiply" :var bg_color="white"
+#+header: :var cmd=gen-command(h_max=output-size[2, 0], stamp_name="m.png" ,v_max=output-size[2, 1], v_count=10, h_count=20) :cache no
+#+begin_src sh :exports results :results file graphics :file m-texture_light.png
+    convert -size ${h_size}x${v_size} xc:$bg_color \
+            -background white -gravity NorthWest -compose $layer_method -alpha off \
+            $cmd \
+            $result_file 1>/dev/null
+
+    echo $result_file
+#+end_src
+
+#+RESULTS: gen-background-light
+[[file:m-texture_light.png]]
+
+** constant density
+:PROPERTIES:
+:CREATED:  [2024-02-05 Mon 19:30]
+:END:
+*** generator
+#+name: gen-command-const-density
+#+header: :var stamp_op="-channel A -fx a*0.7"
+#+header: :var stamp_h=275 :var stamp_w=163
+#+begin_src python :var v_count=2 :var h_count=2 :var h_max=500 :var v_max=500 :var stamp_name="m.png"
+    from random import randint
+
+    # this depends on the image to be stamped on
+    h_ofs_max=int((stamp_h/2) * 0.7)
+    v_ofs_max=int((stamp_w/2) * 0.5)
+
+    h_step = int(stamp_h * 1.5)
+    v_step = int(stamp_w * 1.5)
+
+    cmd=""
+
+    for v in range(0, int(v_max), v_step):
+        for h in range(0, int(h_max), h_step):
+            v_pos = v + randint(-v_ofs_max, v_ofs_max)
+            h_pos = h + randint(-h_ofs_max, h_ofs_max)
+
+            cmd+=f"( ( {stamp_name} {stamp_op}  ) -geometry {stamp_h}x{stamp_w}^{h_pos:+}{v_pos:+} ) +repage -composite "
+
+    return cmd
+#+end_src
+
+#+RESULTS: gen-command-const-density
+: ( ( m.png -channel A -fx a*0.7  ) -geometry 275x163^+54+14 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 275x163^+442+6 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 275x163^+25+216 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 275x163^+398+214 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 275x163^-43+516 ) -composite ( ( m.png -channel A -fx a*0.7  ) -geometry 275x163^+401+465 ) -composite
+
+*** dark
+#+name: gen-background-dark
+#+header: :var result_file="m-texture_dark.png"
+#+header: :var h_size=output-size[2, 0] :var v_size=output-size[2, 1] :colnames nil
+#+header: :var layer_method="Multiply" :var bg_color="white"
+#+header: :var cmd=gen-command-const-density(h_max=output-size[2, 0],  v_max=output-size[2, 1], stamp_op="-alpha extract -alpha copy -fx a*0.3", stamp_name="m_trimmed.png") :cache no
+#+begin_src sh :exports results :results file graphics :file m-texture_dark.png
+  convert -size ${h_size}x${v_size} xc:$bg_color \
+          -background white -gravity NorthWest -compose $layer_method -alpha off \
+          $cmd \
+          -negate \
+          $result_file 1>/dev/null
+
+  echo $result_file
+#+end_src
+
+** composition test
+#+begin_src sh :results file graphics :results output replace
+    convert -size 1000x1000 xc:white -compose Multiply  \( -alpha set -channel A -fx 0.7 m.png \) -composite composite.png 2>&1>/dev/null
+    echo ./composite.png
+#+end_src
+
+#+RESULTS:
+[[file:./composite.png
+]]
