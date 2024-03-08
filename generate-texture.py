@@ -25,13 +25,29 @@ parser.add_argument("--no_stamp_color", action="store_true")
 
 parser.add_argument("-x", "--width", default=2560, type=int)
 parser.add_argument("-y", "--height", default=1080, type=int)
-parser.add_argument("-a", "--stamp_alpha", default=0.7, type=float)
-parser.add_argument("-s", "--stamp_scale", default=0.5, type=float)
+
 parser.add_argument("-d", "--density", default=0.9, type=float)
+parser.add_argument("-s", "--stamp_scale", default=0.5, type=float)
+
+parser.add_argument("-a", "--stamp_alpha", default=0.7, type=float)
+parser.add_argument("-m", "--opacity_min", default=0.2, type=float)
+parser.add_argument("-A", "--opacity_amplitude", default=0.8, type=float)
 
 args = parser.parse_args()
 
-print(args)
+# print(args)
+
+validate = [
+    ("opacity_min", (0.0, 1.0)),
+    ("opacity_amplitude", (0.0, 1.0)),
+    ("stamp_alpha", (0.0, 1.0)),
+]
+
+for name, (minv, maxv) in validate:
+    if args.__getattribute__(name) < minv:
+        raise argparse.ArgumentError(None, f"invalid argument {name} < {minv}")
+    elif args.__getattribute__(name) > maxv:
+        raise argparse.ArgumentError(None, f"invalid argument {name} > {maxv}")
 
 # -----------------------------------------------------------------------------
 # base textures
@@ -82,10 +98,18 @@ print("image size:", texture.size, "mode", texture.mode, "canvas size:",
       canvas.size, "mode", canvas.mode)
 print("step:", h_step, v_step);
 
-def random_opacity(image, maxo, mino, monochrome=False):
-    _, _, _, a = image.split()
-    a = a.point(lambda i: i * (mino + maxo * random.random()))
-    return Image.merge('RGBA', (a, a, a, a))
+def random_opacity(image, mino:float, amplitude:float, monochrome=False):
+    r, g, b, a = image.split()
+
+    # clip to 0.0:1.0 range
+    amplitude = 1.0 - mino if (amplitude + mino) > 1.0 else amplitude
+
+    a = a.point(lambda i: i * (mino + amplitude * random.random()))
+
+    return Image.merge(
+        'RGBA',
+        (r, g, b, a) if not monochrome else (a, a, a, a)
+    )
 
 
 for v in range(0, int(v_max), v_step):
@@ -99,7 +123,10 @@ for v in range(0, int(v_max), v_step):
         rotation = random.random() * 360.0
         scale = 0.7 + random.random() * 0.3
 
-        texture_alpha = random_opacity(texture, 0.4, 0.8, args.no_stamp_color)
+        texture_alpha = random_opacity(
+            texture, args.opacity_min, args.opacity_amplitude,
+            args.no_stamp_color
+        )
 
         rot_texture = texture_alpha \
         .rotate(rotation) \
