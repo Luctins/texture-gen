@@ -5,11 +5,9 @@ Texture Generator
 
 # How to use
 
-Example:
-```bash
-./generate-texture.py -x$((2560*1)) -y$((1080*1)) -d 0.7 -s 0.3 -a 0.8 -m 0.1 --no_stamp_color ./stamp_image.png ./output_image.png
-```
+See `./generate-texture.py -h` for a list of all available parameters
 
 # Sample Output
+
 [[./examples/dark_no_color.png.png]]
 Command: `./generate-texture.py -x2000 -y2000 -d 0.7 -s 0.3 -a 0.8 -m 0.1 --no_stamp_color ./assets/m.png examples/dark_no_color.png`
