@@ -1,7 +1,7 @@
 Texture Generator
 ------------
 
-"Wallpaper" (as in the image that goes in paper that is glued to a wall) generator, using a 'stamp image' over a larger image, applying random, offsets, rotation and opacity.
+"Wallpaper" (as in the image that goes in paper that is glued to a wall) generator, using a 'stamp image' over a larger image, applying random offsets, rotation and opacity.
 
 # How to use
 
