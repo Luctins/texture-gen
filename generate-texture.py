@@ -82,6 +82,12 @@ print("image size:", texture.size, "mode", texture.mode, "canvas size:",
       canvas.size, "mode", canvas.mode)
 print("step:", h_step, v_step);
 
+def random_opacity(image, maxo, mino, monochrome=False):
+    _, _, _, a = image.split()
+    a = a.point(lambda i: i * (mino + maxo * random.random()))
+    return Image.merge('RGBA', (a, a, a, a))
+
+
 for v in range(0, int(v_max), v_step):
     sys.stdout.write(f"\r{100.0*v/v_max:2.1f} %")
     sys.stdout.flush()
@@ -93,7 +99,9 @@ for v in range(0, int(v_max), v_step):
         rotation = random.random() * 360.0
         scale = 0.7 + random.random() * 0.3
 
-        rot_texture = texture \
+        texture_alpha = random_opacity(texture, 0.4, 0.8, args.no_stamp_color)
+
+        rot_texture = texture_alpha \
         .rotate(rotation) \
         .resize((int(texture_size[0] * scale), int(texture_size[1] * scale)))
 
